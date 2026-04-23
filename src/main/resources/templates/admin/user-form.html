@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User form</title>
+</head>
+<body>
+<h1 th:text="${user.id == null ? 'Create new user' : 'Edit user'}">Form</h1>
+
+<form th:action="${user.id == null ? '/admin/users/new' : '/admin/users/' + user.id + '/edit'}"
+      th:object="${user}" method="post">
+
+    <input type="hidden" th:field="*{id}" />
+
+    <label>Username: <input type="text" th:field="*{username}" required/></label><br/>
+    <label>Password: <input type="password" th:field="*{password}" th:required="${user.id == null}"/></label><br/>
+    <label>Name: <input type="text" th:field="*{name}" required/></label><br/>
+    <label>Age: <input type="number" th:field="*{age}" required/></label><br/>
+    <label>Email: <input type="email" th:field="*{email}" required/></label><br/>
+
+    <label>Roles:</label><br/>
+    <div th:each="role : ${allRoles}">
+        <input type="checkbox" th:value="${role.id}" th:field="*{roles}" th:checked="${user.roles.contains(role)}" />
+        <span th:text="${role.name}"></span><br/>
+    </div>
+
+    <button type="submit">Save</button>
+</form>
+<br/>
+<a th:href="@{/admin/users}">Back to list</a>
+</body>
+</html>
