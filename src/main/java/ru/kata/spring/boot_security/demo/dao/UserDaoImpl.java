@@ -5,7 +5,6 @@ import ru.kata.spring.boot_security.demo.model.User;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
 import java.util.List;
 
 
@@ -17,14 +16,18 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public List<User> getAllUsers() {
-        List<User> allUsers = entityManager.createQuery("from User", User.class).getResultList();
-        return allUsers;
+        return entityManager.createQuery(
+                        "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles", User.class)
+                .getResultList();
     }
 
     @Override
     public User getUserById(Long id) {
-        User byId = entityManager.find(User.class, id);
-        return byId;
+        List<User> result = entityManager.createQuery(
+                        "SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.id = :id", User.class)
+                .setParameter("id", id)
+                .getResultList();
+        return result.isEmpty() ? null : result.get(0);
     }
 
     @Override
@@ -46,13 +49,11 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User findByUsername(String username) {
-        TypedQuery<User> query = entityManager.createQuery("from User where username = :username", User.class);
-        query.setParameter("username", username);
-        List<User> result = query.getResultList();
-        if (result.isEmpty()) {
-            return null;
-        } else {
-            return result.get(0);
-        }
+        List<User> result = entityManager.createQuery(
+                        "SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :username",
+                        User.class)
+                .setParameter("username", username)
+                .getResultList();
+        return result.isEmpty() ? null : result.get(0);
     }
 }

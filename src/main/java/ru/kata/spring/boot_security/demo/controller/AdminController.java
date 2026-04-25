@@ -1,6 +1,5 @@
 package ru.kata.spring.boot_security.demo.controller;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +17,10 @@ public class AdminController {
 
     private final UserService userService;
     private final RoleService roleService;
-    private final PasswordEncoder passwordEncoder;
 
-    public AdminController(UserService userService, RoleService roleService, PasswordEncoder passwordEncoder) {
+    public AdminController(UserService userService, RoleService roleService) {
         this.userService = userService;
         this.roleService = roleService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/users")
@@ -45,7 +42,6 @@ public class AdminController {
     @PostMapping("/users/new")
     public String createUser(@ModelAttribute User user,
                              @RequestParam(value = "roleIds", required = false) List<Long> roleIds) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRoles(roleService.getRolesByIds(roleIds));
         userService.saveOrUpdate(user);
         return "redirect:/admin/users";
@@ -63,13 +59,6 @@ public class AdminController {
     public String updateUser(@PathVariable Long id,
                              @ModelAttribute User user,
                              @RequestParam(value = "roleIds", required = false) List<Long> roleIds) {
-
-        User existingUser = userService.getUserById(id);
-        if (user.getPassword() == null || user.getPassword().isEmpty()) {
-            user.setPassword(existingUser.getPassword());
-        } else {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
         user.setId(id);
         user.setRoles(roleService.getRolesByIds(roleIds));
         userService.saveOrUpdate(user);

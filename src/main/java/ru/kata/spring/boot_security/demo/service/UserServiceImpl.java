@@ -1,6 +1,7 @@
 package ru.kata.spring.boot_security.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.dao.UserDao;
@@ -13,10 +14,12 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserDao userDao) {
+    public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder) {
         this.userDao = userDao;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
@@ -31,9 +34,16 @@ public class UserServiceImpl implements UserService {
         return userDao.getUserById(id);
     }
 
+
     @Transactional
     @Override
     public void saveOrUpdate(User user) {
+        if (user.getId() != null && (user.getPassword() == null || user.getPassword().isEmpty())) {
+            User existing = userDao.getUserById(user.getId());
+            user.setPassword(existing.getPassword());
+        } else if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         userDao.saveOrUpdate(user);
     }
 
